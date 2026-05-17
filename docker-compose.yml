@@ -49,6 +49,33 @@ services:
       retries: 5
       start_period: 20s
 
+  tailscale:
+    image: tailscale/tailscale:latest
+    # Joins the gateway's network namespace so the TUN interface and Tailscale
+    # routes are shared with openclaw-gateway without requiring openclaw-gateway
+    # itself to run with elevated privileges.
+    network_mode: "service:openclaw-gateway"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_USERSPACE: "false"
+      TS_ACCEPT_DNS: ${TS_ACCEPT_DNS:-true}
+      TS_EXTRA_ARGS: ${TS_EXTRA_ARGS:-}
+      TS_SERVE_CONFIG: /config/ts-serve.json
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+      - ./config/ts-serve.json:/config/ts-serve.json:ro
+    init: true
+    restart: unless-stopped
+    depends_on:
+      openclaw-gateway:
+        condition: service_started
+
   openclaw-cli:
     image: ${OPENCLAW_IMAGE:-openclaw:local}
     network_mode: "service:openclaw-gateway"
@@ -76,3 +103,6 @@ services:
     entrypoint: ["node", "dist/index.js"]
     depends_on:
       - openclaw-gateway
+
+volumes:
+  tailscale-state:
