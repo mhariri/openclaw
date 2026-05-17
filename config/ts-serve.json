@@ -1,0 +1,11 @@
+{
+  "TCP": { "443": { "HTTPS": true } },
+  "Web": {
+    "bd07634f3dda.tail7e0158.ts.net:443": {
+      "Handlers": { "/": { "Proxy": "http://127.0.0.1:8788" } }
+    }
+  },
+  "AllowFunnel": {
+    "bd07634f3dda.tail7e0158.ts.net:443": true
+  }
+}
